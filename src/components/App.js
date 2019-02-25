@@ -32,19 +32,46 @@ class BooksApp extends React.Component {
 
   }
 
-  selectShelf = (shelf , idBook) => {
-    
-      // First of All we Need to update the state of the shelf in the BE
-      BooksAPI.update({id:idBook}, shelf).then(res => {
+selectShelf = (shelf , idBook) => {
+    // First of All we Need to update the state of the shelf in the BE
+    // 
+    BooksAPI.update({id:idBook}, shelf).then(res => {
+
+       let currentBooks = [];
+       currentBooks = this.state.books.map(book=>book)
+       const result = currentBooks.find( book => book.id === idBook );
+
+         // the case were the shelf is not in this.state.books
+         // we can call BE to get the array updated
+        if(result===undefined || shelf==='none') {
+
+            BooksAPI.getAll().then(books => {
+                 currentBooks = books.map(book=>book)
+                 this.updateAllShelf(currentBooks);
+            });
+
+         } else {
+
+              Object.keys(res).forEach((obj) => {                  
         
-              BooksAPI.getAll().then(books => {
-                  
-                   this.updateAllShelf(books);
-         
-              });
-           
-      });
-       
+                      currentBooks.map((book) => {
+
+                            res[obj].forEach((eleId) => {
+
+                               if(book.id===eleId) {
+                                   book.shelf=obj;
+                                }
+                            })
+                            
+                            return book
+                       })        
+              })
+
+         }
+
+          this.updateAllShelf(currentBooks);
+    });
+     
   }
 
 
